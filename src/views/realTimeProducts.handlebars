@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos en tiempo real</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <h1>Productos (Tiempo real)</h1>
+    
+    <form id="formAgregarProducto">
+        <input type="text" id="title" placeholder="Título" required>
+        <input type="text" id="description" placeholder="Descripción" required>
+        <input type="text" id="code" placeholder="Código" required>
+        <input type="number" id="price" placeholder="Precio" required>
+        <input type="number" id="stock" placeholder="Stock" required>
+        <input type="text" id="category" placeholder="Categoría" required>
+        <button type="submit">Agregar Producto</button>
+    </form>
+
+    <ul id="listaProductos"></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('actualizarProductos', (producto) => {
+            const lista = document.getElementById('listaProductos');
+            const item = document.createElement('li');
+            item.textContent = `${producto.title} - ${producto.price}`;
+            item.id = producto.id;
+            const btnEliminar = document.createElement('button');
+            btnEliminar.textContent = 'Eliminar';
+            btnEliminar.onclick = () => {
+                socket.emit('productoEliminado', producto.id);
+                item.remove();
+            };
+            item.appendChild(btnEliminar);
+            lista.appendChild(item);
+        });
+
+        document.getElementById('formAgregarProducto').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const code = document.getElementById('code').value;
+            const price = document.getElementById('price').value;
+            const stock = document.getElementById('stock').value;
+            const category = document.getElementById('category').value;
+
+            if (!title || !description || !code || !price || !stock || !category) {
+                Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+                return;
+            }
+
+            const producto = {
+                id: Date.now().toString(),
+                title,
+                description,
+                code,
+                price,
+                status: true,
+                stock,
+                category,
+            };
+
+            socket.emit('productoNuevo', producto);
+            document.getElementById('formAgregarProducto').reset();
+        });
+    </script>
+</body>
+</html>

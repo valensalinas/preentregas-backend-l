@@ -1,35 +1,34 @@
 [
-    {
-        "id": "1",
-        "title": "Remera",
-        "description": "Remera de algodón roja.",
-        "code": "REM001",
-        "price": 1500,
-        "status": true,
-        "stock": 50,
-        "category": "Remeras",
-        "thumbnails": []
-    },
-    {
-        "id": "2",
-        "title": "Campera",
-        "description": "Campera puffer negra.",
-        "code": "CAM002",
-        "price": 2000,
-        "status": true,
-        "stock": 30,
-        "category": "Camperas",
-        "thumbnails": []
-    },
-    {
-        "id": "3",
-        "title": "Medias",
-        "description": "Medias deportivas blancas.",
-        "code": "MED003",
-        "price": 1000,
-        "status": true,
-        "stock": 100,
-        "category": "Medias",
-        "thumbnails": []
-    }
+  {
+    "id": "1",
+    "title": "Remera",
+    "description": "Remera de algodón roja.",
+    "code": "REM001",
+    "price": 1500,
+    "status": true,
+    "stock": 50,
+    "category": "Remeras",
+    "thumbnails": []
+  },
+  {
+    "id": "2",
+    "title": "Campera",
+    "description": "Campera puffer negra.",
+    "code": "CAM002",
+    "price": 2000,
+    "status": true,
+    "stock": 30,
+    "category": "Camperas",
+    "thumbnails": []
+  },
+  {
+    "id": "1728999466747",
+    "title": "Medias",
+    "description": "Medias Blancas ",
+    "code": "MED001",
+    "price": "7500",
+    "status": true,
+    "stock": "50",
+    "category": "Medias"
+  }
 ]

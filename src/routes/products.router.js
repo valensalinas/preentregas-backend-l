@@ -1,9 +1,16 @@
-import express from 'express';
+import { Router } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 
-const router = express.Router();
+const router = Router();
 const productsFilePath = path.resolve('src', 'products.json');
+
+
+const validateProduct = (product) => {
+    const requiredFields = ['title', 'description', 'code', 'price', 'stock', 'category'];
+    const missingFields = requiredFields.filter(field => !product[field]);
+    return missingFields.length ? missingFields : null;
+};
 
 
 router.get('/', async (req, res) => {
@@ -26,18 +33,11 @@ router.get('/:pid', async (req, res) => {
 });
 
 
-const validateProduct = (product) => {
-    const requiredFields = ['title', 'description', 'code', 'price', 'stock', 'category'];
-    const missingFields = requiredFields.filter(field => !product[field]);
-    return missingFields.length ? missingFields : null;
-};
-
-
 router.post('/', async (req, res) => {
     const newProduct = req.body;
     const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
-    
-    newProduct.id = Date.now().toString(); 
+
+    newProduct.id = Date.now().toString();
 
     const missingFields = validateProduct(newProduct);
     if (missingFields) {
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
 
     products.push(newProduct);
     await fs.writeFile(productsFilePath, JSON.stringify(products, null, 2));
-    
+
     res.status(201).json(newProduct);
 });
 
@@ -55,7 +55,7 @@ router.put('/:pid', async (req, res) => {
     const productId = req.params.pid;
     const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
     const productIndex = products.findIndex(p => p.id === productId);
-    
+
     if (productIndex !== -1) {
         const updatedProduct = { ...products[productIndex], ...req.body };
 
@@ -77,7 +77,7 @@ router.delete('/:pid', async (req, res) => {
     const productId = req.params.pid;
     const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
     const newProducts = products.filter(p => p.id !== productId);
-    
+
     if (newProducts.length < products.length) {
         await fs.writeFile(productsFilePath, JSON.stringify(newProducts, null, 2));
         res.status(204).send();
