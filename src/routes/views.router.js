@@ -1,34 +1,16 @@
 import { Router } from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs/promises';
+import OrderController from '../dao/orders.controller.js';
+
 
 const router = Router();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const controller = new OrderController();
 
-
-router.get('/products', async (req, res) => {
-    try {
-        const data = await fs.readFile(path.resolve(__dirname, '../products.json'), 'utf-8');
-        const productos = JSON.parse(data);
-        res.render('index', { productos });
-    } catch (error) {
-        console.error('Error al leer el archivo de productos:', error);
-        res.status(500).send('Error al cargar los productos');
-    }
+router.get('/orders/:pg?', async (req, res) => {
+    const pg = req.params.pg || 1;
+    const data = await controller.getPaginated(pg);
+    
+    res.status(200).render('orders', { orders: data });
 });
 
-
-router.get('/realtimeproducts', async (req, res) => {
-    try {
-        const data = await fs.readFile(path.resolve(__dirname, '../products.json'), 'utf-8');
-        const productos = JSON.parse(data);
-        res.render('realTimeProducts', { productos });
-    } catch (error) {
-        console.error('Error al leer el archivo de productos:', error);
-        res.status(500).send('Error al cargar la vista de productos en tiempo real');
-    }
-});
 
 export default router;

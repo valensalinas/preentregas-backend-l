@@ -1,88 +1,45 @@
 import { Router } from 'express';
-import fs from 'fs/promises';
-import path from 'path';
+import ProductController from '../dao/product.controller.js';
 
 const router = Router();
-const productsFilePath = path.resolve('src', 'products.json');
-
-
-const validateProduct = (product) => {
-    const requiredFields = ['title', 'description', 'code', 'price', 'stock', 'category'];
-    const missingFields = requiredFields.filter(field => !product[field]);
-    return missingFields.length ? missingFields : null;
-};
-
+const controller = new ProductController();
 
 router.get('/', async (req, res) => {
-    const { limit } = req.query;
-    const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
-    const result = limit ? products.slice(0, limit) : products;
-    res.json(result);
-});
+    const { page = 1, limit, sort, query } = req.query;
+    try {
 
+        const data = await controller.getPaginated(
+            parseInt(page),
+            limit ? parseInt(limit) : undefined,
+            sort,
+            query
+        );
 
-router.get('/:pid', async (req, res) => {
-    const productId = req.params.pid;
-    const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
-    const product = products.find(p => p.id === productId);
-    if (product) {
-        res.json(product);
-    } else {
-        res.status(404).json({ message: 'Producto no encontrado' });
+        res.status(200).render('products', {
+            products: data.payload,
+            pagination: {
+                totalPages: data.totalPages,
+                prevPage: data.prevPage,
+                nextPage: data.nextPage,
+                currentPage: data.page,
+                hasPrevPage: data.hasPrevPage,
+                hasNextPage: data.hasNextPage,
+                prevLink: data.prevLink,
+                nextLink: data.nextLink,
+            },
+        });
+    } catch (error) {
+        res.status(500).send({ status: 'error', message: error.message });
     }
 });
-
 
 router.post('/', async (req, res) => {
-    const newProduct = req.body;
-    const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
-
-    newProduct.id = Date.now().toString();
-
-    const missingFields = validateProduct(newProduct);
-    if (missingFields) {
-        return res.status(400).json({ message: `Faltan los campos obligatorios: ${missingFields.join(', ')}` });
-    }
-
-    products.push(newProduct);
-    await fs.writeFile(productsFilePath, JSON.stringify(products, null, 2));
-
-    res.status(201).json(newProduct);
-});
-
-
-router.put('/:pid', async (req, res) => {
-    const productId = req.params.pid;
-    const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
-    const productIndex = products.findIndex(p => p.id === productId);
-
-    if (productIndex !== -1) {
-        const updatedProduct = { ...products[productIndex], ...req.body };
-
-        const missingFields = validateProduct(updatedProduct);
-        if (missingFields) {
-            return res.status(400).json({ message: `Faltan los campos obligatorios: ${missingFields.join(', ')}` });
-        }
-
-        products[productIndex] = updatedProduct;
-        await fs.writeFile(productsFilePath, JSON.stringify(products, null, 2));
-        res.json(updatedProduct);
-    } else {
-        res.status(404).json({ message: 'Producto no encontrado' });
-    }
-});
-
-
-router.delete('/:pid', async (req, res) => {
-    const productId = req.params.pid;
-    const products = JSON.parse(await fs.readFile(productsFilePath, 'utf-8'));
-    const newProducts = products.filter(p => p.id !== productId);
-
-    if (newProducts.length < products.length) {
-        await fs.writeFile(productsFilePath, JSON.stringify(newProducts, null, 2));
-        res.status(204).send();
-    } else {
-        res.status(404).json({ message: 'Producto no encontrado' });
+    const productData = req.body;
+    try {
+        const product = await controller.add(productData);
+        res.status(201).send({ status: 'success', data: product });
+    } catch (error) {
+        res.status(500).send({ status: 'error', message: error.message });
     }
 });
 
